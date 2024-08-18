@@ -6,15 +6,14 @@ import {
   SystemProgram,
   Transaction,
   LAMPORTS_PER_SOL,
+  clusterApiUrl,
 } from "@solana/web3.js";
 import { createPostResponse, actionCorsMiddleware } from "@solana/actions";
 import { BASE64_IMG } from "./config";
 require("dotenv").config();
 
-const USDC_PUBKEY = "94A7ExXa9AkdiAnPiCYwJ8SbMuZdAoXnAhGiJqygmFfL";
-const connection = new Connection(
-  "https://solana-devnet.g.alchemy.com/v2/qlsrTkNGjnuK46GWAC2AVAaVnVZ2ylVf"
-);
+const SOL_PUBKEY = "6fQytE8KQZvEVvGnSM6kfWbtVbso8j3GhFQPuZoHZCmD";
+const connection = new Connection(process.env.RPC_URL! || clusterApiUrl('mainnet-beta'));
 const PORT = 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
@@ -24,25 +23,21 @@ app.use(express.json());
 
 app.use(actionCorsMiddleware({}));
 
-
-
-
 app.get("/actions.json", getActionsJson);
 
-function getActionsJson(req: Request, res :Response) {
-    const payload = {
-      rules: [
-        { pathPattern: "/*", apiPath: "/blink/actions/*" },
-        { pathPattern: "/blink/actions/**", apiPath: "/blink/actions/**" },
-      ],
-    };
-    res.json(payload);
-  }
-
+function getActionsJson(req: Request, res: Response) {
+  const payload = {
+    rules: [
+      { pathPattern: "/*", apiPath: "/blink/actions/*" },
+      { pathPattern: "/blink/actions/**", apiPath: "/blink/actions/**" },
+    ],
+  };
+  res.json(payload);
+}
 
 app.get("/blink/actions/payments", (req, res) => {
   try {
-    const basehref = `${BASE_URL}/blink/actions/payments?to=${USDC_PUBKEY}`;
+    const basehref = `${BASE_URL}/blink/actions/payments?to=${SOL_PUBKEY}`;
 
     const payload = {
       title: "100xdevs COHORT 3.0",
@@ -52,12 +47,16 @@ app.get("/blink/actions/payments", (req, res) => {
       links: {
         actions: [
           {
-            label: "100 USDC",
-            href: `${basehref}&amount=1`,
+            label: "0.7SOL(100$)",
+            href: `${basehref}&amount=0.7`,
           },
           {
-            label: "75 USDC",
-            href: `${basehref}&amount=75`,
+            label: "0.5SOL(75$)",
+            href: `${basehref}&amount=0.5`,
+          },
+          {
+            label: "0.01SOL",
+            href: `${basehref}&amount=0.5`,
           },
         ],
       },
@@ -85,7 +84,7 @@ app.post("/blink/actions/payments", async (req, res) => {
     const user = new PublicKey(account);
     const transferSolInstruction = SystemProgram.transfer({
       fromPubkey: user,
-      toPubkey: new PublicKey(USDC_PUBKEY),
+      toPubkey: new PublicKey(SOL_PUBKEY),
       lamports: amount * LAMPORTS_PER_SOL,
     });
 
@@ -97,11 +96,16 @@ app.post("/blink/actions/payments", async (req, res) => {
       blockhash,
       lastValidBlockHeight,
     }).add(transferSolInstruction);
-
+    const serializedTransaction = transaction
+      .serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      })
+      .toString("base64");
     const payload = await createPostResponse({
       fields: {
         transaction,
-        message: `Send ${amount} SOL to ${USDC_PUBKEY}`,
+        message: `Send ${amount} SOL to ${SOL_PUBKEY}`,
       },
     });
 
