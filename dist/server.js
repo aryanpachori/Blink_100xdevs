@@ -24,23 +24,35 @@ const BASE_URL = `http://localhost:${PORT}`;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, actions_1.actionCorsMiddleware)({}));
+app.get("/actions.json", getActionsJson);
+function getActionsJson(req, res) {
+    const payload = {
+        rules: [
+            { pathPattern: "/*", apiPath: "/blink/actions/*" },
+            { pathPattern: "/blink/actions/**", apiPath: "/blink/actions/**" },
+        ],
+    };
+    res.json(payload);
+}
 app.get("/blink/actions/payments", (req, res) => {
     try {
         const basehref = `${BASE_URL}/blink/actions/payments?to=${USDC_PUBKEY}`;
         const payload = {
-            title: "100xdevs",
+            title: "100xdevs COHORT 3.0",
             icon: `data:image/png;base64,${config_1.BASE64_IMG}`,
             description: "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75  **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
-            actions: [
-                {
-                    label: "100 USDC",
-                    href: `${basehref}&amount=100`,
-                },
-                {
-                    label: "75 USDC",
-                    href: `${basehref}&amount=75`,
-                },
-            ],
+            links: {
+                actions: [
+                    {
+                        label: "100 USDC",
+                        href: `${basehref}&amount=1`,
+                    },
+                    {
+                        label: "75 USDC",
+                        href: `${basehref}&amount=75`,
+                    },
+                ],
+            },
         };
         res.json(payload);
     }
