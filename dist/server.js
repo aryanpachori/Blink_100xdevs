@@ -18,29 +18,18 @@ const actions_1 = require("@solana/actions");
 const config_1 = require("./config");
 require("dotenv").config();
 const SOL_PUBKEY = "6fQytE8KQZvEVvGnSM6kfWbtVbso8j3GhFQPuZoHZCmD";
-const connection = new web3_js_1.Connection(process.env.RPC_URL || (0, web3_js_1.clusterApiUrl)('mainnet-beta'));
-const PORT = 3000;
-const BASE_URL = `http://localhost:${PORT}`;
+const connection = new web3_js_1.Connection(process.env.RPC_URL || (0, web3_js_1.clusterApiUrl)("mainnet-beta"));
+const headers = (0, actions_1.createActionHeaders)();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, actions_1.actionCorsMiddleware)({}));
-app.get("/actions.json", getActionsJson);
-function getActionsJson(req, res) {
-    const payload = {
-        rules: [
-            { pathPattern: "/*", apiPath: "/blink/actions/*" },
-            { pathPattern: "/blink/actions/**", apiPath: "/blink/actions/**" },
-        ],
-    };
-    res.json(payload);
-}
 app.get("/blink/actions/payments", (req, res) => {
     try {
-        const basehref = `${BASE_URL}/blink/actions/payments?to=${SOL_PUBKEY}`;
+        const basehref = new URL(`/blink/actions/payments?to=${SOL_PUBKEY}`, req.protocol + "://" + req.get("host")).toString();
         const payload = {
             title: "100xdevs COHORT 3.0",
             icon: `data:image/png;base64,${config_1.BASE64_IMG}`,
-            description: "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75  **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
+            description: "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75 **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
             links: {
                 actions: [
                     {
@@ -53,11 +42,12 @@ app.get("/blink/actions/payments", (req, res) => {
                     },
                     {
                         label: "0.01SOL",
-                        href: `${basehref}&amount=0.5`,
+                        href: `${basehref}&amount=0.01`,
                     },
                 ],
             },
         };
+        res.set(headers);
         res.json(payload);
     }
     catch (err) {
@@ -99,6 +89,7 @@ app.post("/blink/actions/payments", (req, res) => __awaiter(void 0, void 0, void
                 message: `Send ${amount} SOL to ${SOL_PUBKEY}`,
             },
         });
+        res.set(headers);
         res.json(payload);
     }
     catch (err) {
@@ -106,6 +97,16 @@ app.post("/blink/actions/payments", (req, res) => __awaiter(void 0, void 0, void
         res.status(500).json({ error: "An unknown error occurred" });
     }
 }));
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.options("/blink/actions/payments", (req, res) => {
+    res.set(headers);
+    res.sendStatus(204);
+});
+app.get("/actions.json", (req, res) => {
+    res.set(headers);
+    res.json({
+        message: "This is your actions.json response",
+    });
+});
+app.listen(3000, () => {
+    console.log(`Server is running on port 3000`);
 });

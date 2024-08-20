@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express";
-
 import {
   Connection,
   PublicKey,
@@ -8,42 +7,37 @@ import {
   LAMPORTS_PER_SOL,
   clusterApiUrl,
 } from "@solana/web3.js";
-import { createPostResponse, actionCorsMiddleware } from "@solana/actions";
+import {
+  createPostResponse,
+  actionCorsMiddleware,
+  createActionHeaders,
+} from "@solana/actions";
 import { BASE64_IMG } from "./config";
 require("dotenv").config();
 
 const SOL_PUBKEY = "6fQytE8KQZvEVvGnSM6kfWbtVbso8j3GhFQPuZoHZCmD";
-const connection = new Connection(process.env.RPC_URL! || clusterApiUrl('mainnet-beta'));
-const PORT = 3000;
-const BASE_URL = `http://localhost:${PORT}`;
-
+const connection = new Connection(
+  process.env.RPC_URL! || clusterApiUrl("mainnet-beta")
+);
+const headers = createActionHeaders();
 const app = express();
 
 app.use(express.json());
-
 app.use(actionCorsMiddleware({}));
 
-app.get("/actions.json", getActionsJson);
 
-function getActionsJson(req: Request, res: Response) {
-  const payload = {
-    rules: [
-      { pathPattern: "/*", apiPath: "/blink/actions/*" },
-      { pathPattern: "/blink/actions/**", apiPath: "/blink/actions/**" },
-    ],
-  };
-  res.json(payload);
-}
 
 app.get("/blink/actions/payments", (req, res) => {
   try {
-    const basehref = `${BASE_URL}/blink/actions/payments?to=${SOL_PUBKEY}`;
-
+    const basehref = new URL(
+      `/blink/actions/payments?to=${SOL_PUBKEY}`,
+      req.protocol + "://" + req.get("host")
+    ).toString();
     const payload = {
       title: "100xdevs COHORT 3.0",
       icon: `data:image/png;base64,${BASE64_IMG}`,
       description:
-        "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75  **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
+        "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75 **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
       links: {
         actions: [
           {
@@ -56,18 +50,19 @@ app.get("/blink/actions/payments", (req, res) => {
           },
           {
             label: "0.01SOL",
-            href: `${basehref}&amount=0.5`,
+            href: `${basehref}&amount=0.01`,
           },
         ],
       },
     };
-
+    res.set(headers);
     res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "An unknown error occurred" });
   }
 });
+
 
 app.post("/blink/actions/payments", async (req, res) => {
   try {
@@ -109,6 +104,7 @@ app.post("/blink/actions/payments", async (req, res) => {
       },
     });
 
+    res.set(headers);
     res.json(payload);
   } catch (err) {
     console.error(err);
@@ -116,6 +112,21 @@ app.post("/blink/actions/payments", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+app.options("/blink/actions/payments", (req, res) => {
+  res.set(headers);
+  res.sendStatus(204); 
+});
+
+
+app.get("/actions.json", (req, res) => {
+  res.set(headers);
+  res.json({
+    message: "This is your actions.json response",
+   
+  });
+});
+
+app.listen(3000, () => {
+  console.log(`Server is running on port 3000`);
 });
