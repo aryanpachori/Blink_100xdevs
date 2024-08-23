@@ -25,8 +25,6 @@ const app = express();
 app.use(express.json());
 app.use(actionCorsMiddleware({}));
 
-
-
 app.get("/blink/actions/payments", (req, res) => {
   try {
     const basehref = new URL(
@@ -37,7 +35,10 @@ app.get("/blink/actions/payments", (req, res) => {
       title: "100xdevs COHORT 3.0",
       icon: `data:image/png;base64,${BASE64_IMG}`,
       description:
-        "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75 **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
+        "1. Complete Blockchain + Web Development + Devops Cohort - $100\n" +
+        "2. Complete Web3.0 Cohort - $75\n" +
+        "3. Complete Web Development + Devops Cohort - $75\n\n" +
+        "**IMP:** After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
       links: {
         actions: [
           {
@@ -62,7 +63,6 @@ app.get("/blink/actions/payments", (req, res) => {
     res.status(500).json({ error: "An unknown error occurred" });
   }
 });
-
 
 app.post("/blink/actions/payments", async (req, res) => {
   try {
@@ -112,18 +112,15 @@ app.post("/blink/actions/payments", async (req, res) => {
   }
 });
 
-
 app.options("/blink/actions/payments", (req, res) => {
   res.set(headers);
-  res.sendStatus(204); 
+  res.sendStatus(204);
 });
-
 
 app.get("/actions.json", (req, res) => {
   res.set(headers);
   res.json({
     message: "This is your actions.json response",
-   
   });
 });
 

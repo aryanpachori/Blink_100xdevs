@@ -29,7 +29,10 @@ app.get("/blink/actions/payments", (req, res) => {
         const payload = {
             title: "100xdevs COHORT 3.0",
             icon: `data:image/png;base64,${config_1.BASE64_IMG}`,
-            description: "1. Complete Blockchain + Web Development + Devops Cohort - $100 2. Complete Web3.0 Cohort - $75 3. Complete Web Development + Devops Cohort - $75 **IMP :After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
+            description: "1. Complete Blockchain + Web Development + Devops Cohort - $100\n" +
+                "2. Complete Web3.0 Cohort - $75\n" +
+                "3. Complete Web Development + Devops Cohort - $75\n\n" +
+                "**IMP:** After you’ve made the payment, please send an email to 100xdevs@gmail.com with the transaction signature. We’ll let you in the course with that email.",
             links: {
                 actions: [
                     {
